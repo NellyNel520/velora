@@ -3,7 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
 import { getCategoryBySlug } from "@/lib/queries/categories";
-import { getProducts } from "@/lib/queries/products";
+import { getFilteredProducts } from "@/lib/queries/products";
 import { ProductCard } from "@/components/product/product-card";
 import { ProductPagination } from "@/components/product/product-pagination";
 import {
@@ -47,7 +47,7 @@ export default async function CategoryPage({
   if (!category) notFound();
 
   const page = Number(sp.page) || 1;
-  const result = await getProducts({
+  const result = await getFilteredProducts({
     page,
     category: slug,
     sort: sp.sort,
@@ -131,11 +131,11 @@ export default async function CategoryPage({
           </div>
         )}
 
-        {result.totalPages > 1 && (
+        {result.total_pages > 1 && (
           <div className="mt-12">
             <ProductPagination
               currentPage={result.page}
-              totalPages={result.totalPages}
+              totalPages={result.total_pages}
             />
           </div>
         )}

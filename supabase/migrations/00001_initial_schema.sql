@@ -361,3 +361,175 @@ $$ language plpgsql;
 create trigger set_order_number
   before insert on orders
   for each row execute function generate_order_number();
+
+-- ============================================
+-- RPC: Filter Facets
+-- Returns available sizes, colors (with counts), and price range
+-- ============================================
+create or replace function get_filter_facets(p_category text default null)
+returns json
+language plpgsql security definer
+as $$
+declare
+  result json;
+begin
+  with filtered_products as (
+    select p.id, p.base_price
+    from products p
+    where p.status = 'active'
+      and (p_category is null or exists (
+        select 1 from product_categories pc
+        join categories c on c.id = pc.category_id
+        where pc.product_id = p.id and c.slug = p_category
+      ))
+  ),
+  size_facets as (
+    select
+      pv.options->>'size' as value,
+      count(distinct fp.id) as count
+    from filtered_products fp
+    join product_variants pv on pv.product_id = fp.id
+    where pv.options->>'size' is not null
+      and pv.stock_quantity > 0
+    group by pv.options->>'size'
+    order by
+      case pv.options->>'size'
+        when 'XS' then 1 when 'S' then 2 when 'M' then 3
+        when 'L' then 4 when 'XL' then 5 when 'XXL' then 6
+        else 7
+      end
+  ),
+  color_facets as (
+    select
+      pv.options->>'color' as value,
+      count(distinct fp.id) as count
+    from filtered_products fp
+    join product_variants pv on pv.product_id = fp.id
+    where pv.options->>'color' is not null
+      and pv.stock_quantity > 0
+    group by pv.options->>'color'
+    order by count(distinct fp.id) desc
+  ),
+  price_stats as (
+    select
+      coalesce(min(fp.base_price), 0) as min,
+      coalesce(max(fp.base_price), 0) as max
+    from filtered_products fp
+  )
+  select json_build_object(
+    'sizes', coalesce((select json_agg(json_build_object('value', sf.value, 'count', sf.count)) from size_facets sf), '[]'::json),
+    'colors', coalesce((select json_agg(json_build_object('value', cf.value, 'count', cf.count)) from color_facets cf), '[]'::json),
+    'price_range', (select json_build_object('min', ps.min, 'max', ps.max) from price_stats ps)
+  ) into result;
+
+  return result;
+end;
+$$;
+
+-- ============================================
+-- RPC: Filter Products
+-- Full-text search, faceted filtering, sorting, pagination
+-- ============================================
+create or replace function filter_products(
+  p_category text default null,
+  p_sizes text[] default null,
+  p_colors text[] default null,
+  p_min_price int default null,
+  p_max_price int default null,
+  p_search text default null,
+  p_sort text default 'created_at',
+  p_sort_order text default 'desc',
+  p_page int default 1,
+  p_per_page int default 12
+)
+returns json
+language plpgsql security definer
+as $$
+declare
+  result json;
+  total_count int;
+  total_pages int;
+begin
+  -- Count matching products
+  select count(distinct p.id) into total_count
+  from products p
+  where p.status = 'active'
+    and (p_category is null or exists (
+      select 1 from product_categories pc
+      join categories c on c.id = pc.category_id
+      where pc.product_id = p.id and c.slug = p_category
+    ))
+    and (p_sizes is null or exists (
+      select 1 from product_variants pv
+      where pv.product_id = p.id
+        and pv.options->>'size' = any(p_sizes)
+        and pv.stock_quantity > 0
+    ))
+    and (p_colors is null or exists (
+      select 1 from product_variants pv
+      where pv.product_id = p.id
+        and pv.options->>'color' = any(p_colors)
+        and pv.stock_quantity > 0
+    ))
+    and (p_min_price is null or p.base_price >= p_min_price)
+    and (p_max_price is null or p.base_price <= p_max_price)
+    and (p_search is null or p.fts @@ plainto_tsquery('english', p_search));
+
+  total_pages := ceil(total_count::numeric / p_per_page);
+
+  -- Fetch products with images
+  select json_build_object(
+    'products', coalesce((
+      select json_agg(row_to_json(t))
+      from (
+        select
+          p.id, p.name, p.slug, p.base_price, p.compare_at_price,
+          p.status, p.featured, p.created_at,
+          (
+            select coalesce(json_agg(json_build_object(
+              'id', pi.id, 'url', pi.url, 'alt_text', pi.alt_text,
+              'sort_order', pi.sort_order, 'is_primary', pi.is_primary
+            ) order by pi.sort_order), '[]'::json)
+            from product_images pi where pi.product_id = p.id
+          ) as product_images
+        from products p
+        where p.status = 'active'
+          and (p_category is null or exists (
+            select 1 from product_categories pc
+            join categories c on c.id = pc.category_id
+            where pc.product_id = p.id and c.slug = p_category
+          ))
+          and (p_sizes is null or exists (
+            select 1 from product_variants pv
+            where pv.product_id = p.id
+              and pv.options->>'size' = any(p_sizes)
+              and pv.stock_quantity > 0
+          ))
+          and (p_colors is null or exists (
+            select 1 from product_variants pv
+            where pv.product_id = p.id
+              and pv.options->>'color' = any(p_colors)
+              and pv.stock_quantity > 0
+          ))
+          and (p_min_price is null or p.base_price >= p_min_price)
+          and (p_max_price is null or p.base_price <= p_max_price)
+          and (p_search is null or p.fts @@ plainto_tsquery('english', p_search))
+        order by
+          case when p_sort = 'base_price' and p_sort_order = 'asc' then p.base_price end asc,
+          case when p_sort = 'base_price' and p_sort_order = 'desc' then p.base_price end desc,
+          case when p_sort = 'name' and p_sort_order = 'asc' then p.name end asc,
+          case when p_sort = 'name' and p_sort_order = 'desc' then p.name end desc,
+          case when p_sort = 'created_at' and p_sort_order = 'asc' then p.created_at end asc,
+          case when p_sort = 'created_at' and p_sort_order = 'desc' then p.created_at end desc
+        limit p_per_page offset (p_page - 1) * p_per_page
+      ) t
+    ), '[]'::json),
+    'total', total_count,
+    'page', p_page,
+    'per_page', p_per_page,
+    'total_pages', total_pages
+  ) into result;
+
+  return result;
+end;
+$$;
