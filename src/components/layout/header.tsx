@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useState, useEffect } from "react";
-import { Search, ShoppingBag, User, Menu, X } from "lucide-react";
+import { Search, ShoppingBag, User, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
+import { useCart } from "@/hooks/use-cart";
 
 const navLinks = [
   { label: "New Drops", href: "/products?sort=created_at&order=desc" },
@@ -18,12 +19,17 @@ const navLinks = [
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { openCart, totalItems } = useCart();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const itemCount = mounted ? totalItems() : 0;
 
   return (
     <header
@@ -124,14 +130,19 @@ export function Header() {
               <span className="sr-only">Account</span>
             </Link>
           </Button>
-          <Button variant="ghost" size="icon" className="relative" asChild>
-            <Link href="/cart">
-              <ShoppingBag className="h-[18px] w-[18px]" />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="relative"
+            onClick={openCart}
+          >
+            <ShoppingBag className="h-[18px] w-[18px]" />
+            {itemCount > 0 && (
               <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-foreground text-[10px] font-medium text-background">
-                0
+                {itemCount > 99 ? "99+" : itemCount}
               </span>
-              <span className="sr-only">Cart</span>
-            </Link>
+            )}
+            <span className="sr-only">Cart</span>
           </Button>
         </div>
       </div>

@@ -6,14 +6,22 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { formatPrice, cn } from "@/lib/utils";
+import { useCart } from "@/hooks/use-cart";
+import { toast } from "sonner";
 
 interface ProductInfoProps {
   product: {
     id: string;
     name: string;
+    slug: string;
     description: string | null;
     base_price: number;
     compare_at_price: number | null;
+    product_images: {
+      url: string;
+      is_primary: boolean;
+      sort_order: number;
+    }[];
     product_variants: {
       id: string;
       name: string;
@@ -29,6 +37,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
     product.product_variants?.[0] || null
   );
   const [quantity, setQuantity] = useState(1);
+  const { addItem, openCart } = useCart();
 
   const hasVariants = product.product_variants?.length > 0;
   const currentPrice =
@@ -50,6 +59,38 @@ export function ProductInfo({ product }: ProductInfoProps) {
     );
     optionValues[type] = Array.from(values);
   }
+
+  const primaryImage = product.product_images?.find((img) => img.is_primary);
+  const firstImage = product.product_images?.[0];
+  const imageUrl = primaryImage?.url ?? firstImage?.url ?? null;
+
+  const handleAddToCart = () => {
+    if (!inStock) return;
+
+    const variantLabel = selectedVariant
+      ? Object.values(selectedVariant.options).join(" / ")
+      : "";
+
+    addItem({
+      id: `${product.id}-${selectedVariant?.id ?? "default"}`,
+      product_id: product.id,
+      variant_id: selectedVariant?.id ?? null,
+      quantity,
+      product_name: product.name,
+      variant_name: variantLabel,
+      price: currentPrice,
+      image_url: imageUrl,
+      slug: product.slug,
+      stock_quantity: selectedVariant?.stock_quantity ?? 99,
+    });
+
+    toast.success("Added to cart", {
+      description: `${product.name}${variantLabel ? ` — ${variantLabel}` : ""} × ${quantity}`,
+    });
+
+    openCart();
+    setQuantity(1);
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -91,10 +132,12 @@ export function ProductInfo({ product }: ProductInfoProps) {
               const isSelected = selectedVariant?.options[type] === value;
               const matchingVariant = product.product_variants.find((v) => {
                 if (!selectedVariant) return v.options[type] === value;
-                return Object.entries(selectedVariant.options).every(
-                  ([k, val]) =>
-                    k === type ? value === value : v.options[k] === val
-                ) && v.options[type] === value;
+                return (
+                  Object.entries(selectedVariant.options).every(
+                    ([k, val]) =>
+                      k === type ? true : v.options[k] === val
+                  ) && v.options[type] === value
+                );
               });
               const available = matchingVariant
                 ? matchingVariant.stock_quantity > 0
@@ -157,6 +200,7 @@ export function ProductInfo({ product }: ProductInfoProps) {
           size="lg"
           className="h-12 flex-1 rounded-none text-xs font-medium tracking-[0.15em] uppercase"
           disabled={!inStock}
+          onClick={handleAddToCart}
         >
           <ShoppingBag className="mr-2 h-4 w-4" />
           {inStock ? "Add to Cart" : "Out of Stock"}
