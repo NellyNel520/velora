@@ -5,12 +5,12 @@ import { Separator } from "@/components/ui/separator";
 
 const footerLinks = {
   Shop: [
-    { label: "New Arrivals", href: "/products?sort=created_at&order=desc" },
+    { label: "New Drops", href: "/products?sort=created_at&order=desc" },
     { label: "All Products", href: "/products" },
-    { label: "Clothing", href: "/categories/clothing" },
-    { label: "Accessories", href: "/categories/accessories" },
+    { label: "Tops", href: "/categories/tops" },
+    { label: "Bottoms", href: "/categories/bottoms" },
     { label: "Footwear", href: "/categories/footwear" },
-    { label: "Home & Living", href: "/categories/home-living" },
+    { label: "Accessories", href: "/categories/accessories" },
   ],
   Company: [
     { label: "About Us", href: "#" },
@@ -33,11 +33,11 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center gap-4 py-16 text-center">
           <h3 className="text-2xl font-light tracking-wide sm:text-3xl">
-            Stay in the loop
+            Get early access
           </h3>
           <p className="max-w-md text-sm text-muted-foreground">
-            Subscribe for early access to new collections, exclusive offers, and
-            style guides delivered to your inbox.
+            Be the first to know about new drops, restocks, and exclusive
+            pieces before they sell out.
           </p>
           <div className="mt-2 flex w-full max-w-sm gap-2">
             <Input
@@ -64,8 +64,8 @@ export function Footer() {
               Velora
             </Link>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
-              Thoughtfully curated goods for those who appreciate quality
-              craftsmanship and timeless design.
+              Premium streetwear for those who move different. Quality cuts,
+              bold designs, built to last.
             </p>
           </div>
 

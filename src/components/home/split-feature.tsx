@@ -18,8 +18,8 @@ export function SplitFeature() {
         className="relative aspect-[4/5] overflow-hidden lg:aspect-auto lg:min-h-[600px]"
       >
         <Image
-          src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200&q=80"
-          alt="Premium craftsmanship"
+          src="https://images.unsplash.com/photo-1509631179647-0177331693ae?w=1200&q=80"
+          alt="Streetwear lifestyle"
           fill
           className="object-cover"
           sizes="(max-width: 1024px) 100vw, 50vw"
@@ -36,23 +36,21 @@ export function SplitFeature() {
       >
         <div className="max-w-lg">
           <p className="text-xs font-medium tracking-[0.3em] uppercase text-muted-foreground">
-            Our Philosophy
+            The Vision
           </p>
           <h2 className="mt-4 text-3xl font-light leading-tight tracking-tight sm:text-4xl">
-            Designed to last,
+            Not just clothes,
             <br />
-            <span className="italic">crafted with care</span>
+            <span className="italic">a statement</span>
           </h2>
           <p className="mt-6 text-sm leading-relaxed text-muted-foreground">
-            Every piece in our collection is thoughtfully selected for its quality,
-            craftsmanship, and timeless appeal. We partner with artisans and
-            manufacturers who share our commitment to sustainable practices and
-            exceptional materials.
+            Every piece is designed for people who see fashion as self-expression.
+            We source premium fabrics, obsess over the cut, and build pieces that
+            move with you — from the block to the boardroom.
           </p>
           <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-            From premium fabrics to hand-finished details, we believe that the
-            things you surround yourself with should be as intentional as the
-            life you lead.
+            Heavyweight blanks, garment-dyed washes, and details you won&apos;t
+            find at fast fashion retailers. Built to last, designed to turn heads.
           </p>
           <Button
             variant="outline"

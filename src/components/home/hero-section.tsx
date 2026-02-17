@@ -11,8 +11,8 @@ export function HeroSection() {
     <section className="relative h-[85vh] min-h-[600px] w-full overflow-hidden bg-neutral-950">
       {/* Background Image */}
       <Image
-        src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1920&q=80"
-        alt="Curated collection"
+        src="https://images.unsplash.com/photo-1523398002811-999ca8dec234?w=1920&q=80"
+        alt="Streetwear collection"
         fill
         priority
         className="object-cover opacity-60"
@@ -37,7 +37,7 @@ export function HeroSection() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="text-xs font-medium tracking-[0.3em] uppercase text-white/60"
           >
-            New Collection 2026
+            Drop 001 / 2026
           </motion.p>
 
           <motion.h1
@@ -46,9 +46,9 @@ export function HeroSection() {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="mt-4 text-4xl font-light leading-[1.1] tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl"
           >
-            Curated for
+            Wear the
             <br />
-            <span className="font-normal italic">those who notice</span>
+            <span className="font-normal italic">culture</span>
           </motion.h1>
 
           <motion.p
@@ -57,8 +57,8 @@ export function HeroSection() {
             transition={{ duration: 0.6, delay: 0.6 }}
             className="mt-6 max-w-md text-base leading-relaxed text-white/70 sm:text-lg"
           >
-            Discover our handpicked selection of premium goods — where quality
-            craftsmanship meets timeless design.
+            Streetwear essentials built for those who move different.
+            Premium cuts, bold graphics, and pieces that hit different.
           </motion.p>
 
           <motion.div
@@ -73,7 +73,7 @@ export function HeroSection() {
               asChild
             >
               <Link href="/products">
-                Shop Collection
+                Shop the Drop
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </Button>
@@ -83,7 +83,7 @@ export function HeroSection() {
               className="h-12 rounded-none border-white/30 px-8 text-xs font-medium tracking-[0.15em] uppercase text-white hover:bg-white/10 hover:text-white"
               asChild
             >
-              <Link href="/categories/clothing">Explore Clothing</Link>
+              <Link href="/categories/tops">Shop Tops</Link>
             </Button>
           </motion.div>
         </motion.div>

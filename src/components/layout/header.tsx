@@ -7,11 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
 
 const navLinks = [
-  { label: "New Arrivals", href: "/products?sort=created_at&order=desc" },
+  { label: "New Drops", href: "/products?sort=created_at&order=desc" },
   { label: "Shop All", href: "/products" },
-  { label: "Clothing", href: "/categories/clothing" },
-  { label: "Accessories", href: "/categories/accessories" },
+  { label: "Tops", href: "/categories/tops" },
+  { label: "Bottoms", href: "/categories/bottoms" },
   { label: "Footwear", href: "/categories/footwear" },
+  { label: "Accessories", href: "/categories/accessories" },
 ];
 
 export function Header() {
